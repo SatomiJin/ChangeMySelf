@@ -48,12 +48,9 @@ export const getAllNotesByUser = async (uid) => {
       };
     }
 
-    let listNotes = await db.Note.findMany({
+    let listNotes = await db.Note.findAll({
       where: {
         userId: uid,
-      },
-      orderBy: {
-        createdAt: "desc",
       },
     });
 
@@ -87,7 +84,7 @@ export const getNotesByUser = async (uid, noteId) => {
         message: "Missing parameters",
       };
     }
-    let note = await db.Note.findUnique({
+    let note = await db.Note.findOne({
       where: {
         id: noteId,
         userId: uid,
@@ -121,7 +118,7 @@ export const updateNote = async (uid, noteId, data) => {
         message: "Missing parameters",
       };
     }
-    const noteFind = await db.Note.findUnique({
+    const noteFind = await db.Note.findOne({
       where: {
         id: noteId,
         userId: uid,
@@ -133,15 +130,20 @@ export const updateNote = async (uid, noteId, data) => {
         message: "Note not found or you do not have permission to update it",
       };
     }
-    const updatedNote = await db.Note.update({
+    const updatedNote = await db.Note.findOne({
       where: {
         id: noteId,
       },
-      data: {
-        title: data.title || noteFind.title,
-        content: data.content || noteFind.content,
-      },
     });
+    if (!updatedNote) {
+      return {
+        status: "ERROR",
+        message: "Failed to update note",
+      };
+    }
+    updatedNote.title = data.title || noteFind.title;
+    updatedNote.content = data.content || noteFind.content;
+    await updatedNote.save();
     return {
       status: "SUCCESS",
       message: "Note updated successfully",
@@ -164,7 +166,7 @@ export const deleteNote = async (uid, noteId) => {
         message: "Missing parameters",
       };
     }
-    const noteFind = await db.Note.findUnique({
+    const noteFind = await db.Note.findOne({
       where: {
         id: noteId,
         userId: uid,
@@ -176,7 +178,7 @@ export const deleteNote = async (uid, noteId) => {
         message: "Note not found or you do not have permission to delete it",
       };
     }
-    await db.Note.delete({
+    await db.Note.destroy({
       where: {
         id: noteId,
       },

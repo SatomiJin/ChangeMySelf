@@ -285,14 +285,19 @@ export const changeUserRole = async (data) => {
         message: "You cannot change user role to SUPERADMIN",
       };
     }
-    let changeUserRole = await db.User.update({
+    let changeUserRole = await db.User.findOne({
       where: {
         id: data.uid,
       },
-      data: {
-        role: data.changeRole,
-      },
     });
+    if (!changeUserRole) {
+      return {
+        status: "WARNING",
+        message: "User not found",
+      };
+    }
+    changeUserRole.role = data.uRole;
+    await changeUserRole.save();
     return {
       status: "SUCCESS",
       message: "Change user role successfully",
@@ -315,7 +320,7 @@ export const deleteRefreshToken = async (data) => {
         message: "User ID is required",
       };
     }
-    let user = await db.User.findUnique({
+    let user = await db.User.findOne({
       where: {
         id: data?.uid,
       },
@@ -326,11 +331,13 @@ export const deleteRefreshToken = async (data) => {
         message: "User not found",
       };
     }
-    await prisma.refreshToken.deleteMany({
+    // Delete refresh token from the database
+    let allRefreshTokens = await db.RefreshToken.destroy({
       where: {
         userId: data?.uid,
       },
     });
+
     return {
       status: "SUCCESS",
       message: "Delete refresh token successfully",
