@@ -1,9 +1,13 @@
 import express from "express";
 import * as userController from "../controllers/userController.js";
+import { authMiddleware } from "../middleware/index.js";
 const router = express.Router();
 router.post("/sign-up", userController.createUser);
+router.post("/login", userController.loginUser);
 router.get("/get-user-detail", userController.getUserDetail);
 router.get("/get-all-users", userController.getAllUsers);
 router.put("/update-user", userController.updateUser);
+router.put("/change-role", userController.changeUserRole);
 router.delete("/delete-user-by-id", userController.deleteUserById);
+router.delete("/logout", userController.deleteRefreshToken);
 export default router;
